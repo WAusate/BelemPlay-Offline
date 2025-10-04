@@ -4,9 +4,11 @@
                       import Layout from "@/components/layout";
                       import { organs } from "@/lib/organs";
                       import { useHymns } from "@/hooks/use-hymns";
-                      import { Play, ChevronRight } from "lucide-react";
+                      import { Play, ChevronRight, Download, CheckCircle } from "lucide-react";
                       import { Checkbox } from "@/components/ui/checkbox";
                       import { useProgramacao } from "@/contexts/ProgramacaoContext";
+                      import { useOfflineCache } from "@/hooks/use-offline-cache";
+                      import { useState, useEffect } from "react";
 
                       interface HymnListProps {
                         organKey: string;
@@ -17,6 +19,21 @@
                         const organ = organs.find((o) => o.key === organKey);
                         const { hymns, isLoading, error, isOnline, hasOfflineData } = useHymns(organKey);
                         const { toggleItem, isProgrammed } = useProgramacao();
+                        const { isCaching, progress, cacheHymnsForOffline, checkCachedHymns } = useOfflineCache();
+                        const [cachedCount, setCachedCount] = useState(0);
+
+                        useEffect(() => {
+                          if (hymns.length > 0) {
+                            checkCachedHymns(hymns).then(setCachedCount);
+                          }
+                        }, [hymns, checkCachedHymns]);
+
+                        const handleDownloadOffline = async () => {
+                          const success = await cacheHymnsForOffline(hymns);
+                          if (success) {
+                            setCachedCount(hymns.length);
+                          }
+                        };
 
                         const handleHymnSelect = (hymnIndex: number) => {
                           navigate(`/organ/${organKey}/hymn/${hymnIndex}`);
@@ -83,13 +100,41 @@
                             <div className="max-w-4xl mx-auto">
                               <Card className="bg-white shadow-lg overflow-hidden">
                                 <div className="bg-church-primary p-6">
-                                  <h2 className="text-2xl font-bold text-white mb-2">
-                                    Hinos do {organ.name}
-                                  </h2>
-                                  <p className="text-church-light">
-                                    Selecione um hino para reproduzir
-                                    {!isOnline && hasOfflineData && " (modo offline)"}
-                                  </p>
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="flex-1">
+                                      <h2 className="text-2xl font-bold text-white mb-2">
+                                        Hinos do {organ.name}
+                                      </h2>
+                                      <p className="text-church-light">
+                                        Selecione um hino para reproduzir
+                                        {!isOnline && hasOfflineData && " (modo offline)"}
+                                      </p>
+                                    </div>
+                                    <Button
+                                      onClick={handleDownloadOffline}
+                                      disabled={isCaching || cachedCount === hymns.length}
+                                      variant="secondary"
+                                      size="sm"
+                                      className="ml-4"
+                                    >
+                                      {isCaching ? (
+                                        <>
+                                          <div className="h-4 w-4 mr-2 border-2 border-white border-r-transparent rounded-full animate-spin"></div>
+                                          {progress.cached}/{progress.total}
+                                        </>
+                                      ) : cachedCount === hymns.length ? (
+                                        <>
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Disponível offline
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Download className="h-4 w-4 mr-2" />
+                                          Baixar ({cachedCount}/{hymns.length})
+                                        </>
+                                      )}
+                                    </Button>
+                                  </div>
                                 </div>
 
                                 <CardContent className="p-6">
