@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useProgramacao, ProgramItem } from '@/contexts/ProgramacaoContext';
 import { organs } from '@/lib/organs';
+import { Trash2 } from 'lucide-react';
 
 export default function Programacao() {
   const [, navigate] = useLocation();
@@ -39,12 +40,18 @@ export default function Programacao() {
                   {items.map((item) => (
                     <div key={`${item.organKey}-${item.hymnIndex}`} className="flex items-center justify-between">
                       <span className="text-church-text">{item.titulo}</span>
-                      <div className="space-x-2">
-                        <Button size="sm" onClick={() => handlePlay(item)}>
-                          Reproduzir
+                      <div className="flex items-center space-x-2">
+                        <Button size="sm" onClick={() => handlePlay(item)} data-testid={`button-play-${item.organKey}-${item.hymnIndex}`}>
+                          Tocar
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => removeItem(item.organKey, item.hymnIndex)}>
-                          Remover
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          onClick={() => removeItem(item.organKey, item.hymnIndex)}
+                          className="px-2"
+                          data-testid={`button-remove-${item.organKey}-${item.hymnIndex}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>

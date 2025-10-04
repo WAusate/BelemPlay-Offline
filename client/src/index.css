@@ -194,6 +194,10 @@
       transform: scale(0.98);
     }
 
+    .bg-church-primary {
+      background-color: var(--church-primary);
+    }
+
     .bg-church-secondary {
       background-color: var(--church-secondary);
     }

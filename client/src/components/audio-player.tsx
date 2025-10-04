@@ -146,6 +146,16 @@
 
                 const toggleMute = () => setIsMuted(!isMuted);
 
+                const handleVolumeChange = (value: number[]) => {
+                  const newVolume = value[0];
+                  setVolume(newVolume);
+                  // Força atualização do volume no elemento de áudio
+                  const audio = audioRef.current;
+                  if (audio) {
+                    audio.volume = isMuted ? 0 : newVolume / 100;
+                  }
+                };
+
                 const formatTime = (seconds: number) => {
                   const minutes = Math.floor(seconds / 60);
                   const remainingSeconds = Math.floor(seconds % 60);
@@ -229,9 +239,9 @@
                           {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                         </Button>
                         <div className="w-32">
-                          <Slider value={[volume]} onValueChange={(value) => setVolume(value[0])} max={100} step={1} className="w-full" />
+                          <Slider value={[volume]} onValueChange={handleVolumeChange} max={100} step={1} className="w-full" />
                         </div>
-                        <span className="text-xs text-church-text w-8">{volume}%</span>
+                        <span key={`volume-${volume}`} className="text-xs text-church-text w-8">{volume}%</span>
                       </div>
                     </div>
                   </div>
