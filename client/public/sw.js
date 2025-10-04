@@ -80,7 +80,9 @@ self.addEventListener('fetch', (event) => {
 
 async function handleAudioRequest(request) {
   const cache = await caches.open(AUDIO_CACHE);
-  const cachedResponse = await cache.match(request);
+  const url = request.url;
+  
+  const cachedResponse = await cache.match(url, { ignoreSearch: true });
 
   if (cachedResponse) {
     if (request.headers.has('range')) {
@@ -90,10 +92,22 @@ async function handleAudioRequest(request) {
   }
 
   try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
+    const fullRequest = new Request(url, {
+      method: 'GET',
+      headers: new Headers()
+    });
+    
+    const response = await fetch(fullRequest);
+    
+    if (response.ok && response.status === 200) {
+      cache.put(url, response.clone());
+      
+      if (request.headers.has('range')) {
+        return createRangeResponse(response.clone(), request);
+      }
+      return response;
     }
+    
     return response;
   } catch (error) {
     console.log('[SW] Audio fetch failed, returning from cache if available');
@@ -113,7 +127,10 @@ async function createRangeResponse(response, request) {
   const end = match[2] ? parseInt(match[2], 10) : undefined;
 
   const blob = await response.blob();
-  const sliced = end !== undefined ? blob.slice(start, end + 1) : blob.slice(start);
+  const totalSize = blob.size;
+  
+  const actualEnd = end !== undefined && end < totalSize ? end : totalSize - 1;
+  const sliced = blob.slice(start, actualEnd + 1);
   const slicedLength = sliced.size;
 
   return new Response(sliced, {
@@ -122,7 +139,7 @@ async function createRangeResponse(response, request) {
     headers: {
       'Content-Type': response.headers.get('Content-Type') || 'audio/mpeg',
       'Content-Length': slicedLength.toString(),
-      'Content-Range': `bytes ${start}-${start + slicedLength - 1}/${blob.size}`,
+      'Content-Range': `bytes ${start}-${actualEnd}/${totalSize}`,
       'Accept-Ranges': 'bytes'
     }
   });
