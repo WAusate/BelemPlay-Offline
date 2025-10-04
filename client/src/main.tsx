@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { enableDOMErrorSuppression } from "./utils/dom-error-suppressor";
+import { registerServiceWorker } from "./lib/register-sw";
 
 // Import Firebase debug utilities in development
 if (import.meta.env.DEV) {
@@ -70,6 +71,9 @@ if (typeof window !== 'undefined') {
     return originalConsoleWarn.apply(console, args);
   };
 }
+
+// Register Service Worker for PWA functionality
+registerServiceWorker();
 
 // Safely create root with error handling
 const rootElement = document.getElementById("root");
