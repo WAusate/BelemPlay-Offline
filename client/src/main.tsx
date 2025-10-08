@@ -4,15 +4,7 @@ import App from "./App";
 import "./index.css";
 import { enableDOMErrorSuppression } from "./utils/dom-error-suppressor";
 import { registerServiceWorker } from "./lib/register-sw";
-
-// Import Firebase debug utilities in development
-if (import.meta.env.DEV) {
-  import('./lib/firebase-debug').then(({ testFirebaseConnectivity }) => {
-    // Add debug function to window for testing
-    (window as any).testFirebase = testFirebaseConnectivity;
-    console.log('Firebase debug tools loaded. Run testFirebase() in console to test connectivity.');
-  });
-}
+import { initializeOfflineDatabase } from "./lib/offline-db";
 
 // Enable comprehensive DOM error suppression
 enableDOMErrorSuppression();
@@ -75,11 +67,20 @@ if (typeof window !== 'undefined') {
 // Register Service Worker for PWA functionality
 registerServiceWorker();
 
-// Safely create root with error handling
-const rootElement = document.getElementById("root");
-if (rootElement) {
-  createRoot(rootElement).render(<App />);
-} else {
-  console.error('Root element not found. Make sure there is a div with id="root" in your HTML.');
+async function bootstrap() {
+  try {
+    await initializeOfflineDatabase();
+  } catch (error) {
+    console.error('Erro ao iniciar banco de dados offline:', error);
+  }
+
+  const rootElement = document.getElementById("root");
+  if (rootElement) {
+    createRoot(rootElement).render(<App />);
+  } else {
+    console.error('Root element not found. Make sure there is a div with id="root" in your HTML.');
+  }
 }
+
+bootstrap();
 
