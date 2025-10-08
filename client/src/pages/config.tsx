@@ -8,31 +8,11 @@ import { organs } from "@/lib/organs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showSimpleToast } from "@/components/simple-toast";
+import { DEFAULT_ADMIN_PASSWORD, getStoredAdminPassword, setStoredAdminPassword } from "@/lib/admin-password";
 
 interface HymnSummary {
   organKey: string;
   count: number;
-}
-
-const OFFLINE_PASSWORD_KEY = "belemplay-offline-password";
-const DEFAULT_PASSWORD = "belem123";
-
-function readStoredPassword() {
-  try {
-    return localStorage.getItem(OFFLINE_PASSWORD_KEY) ?? DEFAULT_PASSWORD;
-  } catch (error) {
-    console.warn("Não foi possível ler a senha local:", error);
-    return DEFAULT_PASSWORD;
-  }
-}
-
-function savePassword(newPassword: string) {
-  try {
-    localStorage.setItem(OFFLINE_PASSWORD_KEY, newPassword);
-  } catch (error) {
-    console.warn("Não foi possível salvar a senha local:", error);
-    throw error;
-  }
 }
 
 export default function Config() {
@@ -64,13 +44,13 @@ export default function Config() {
 
     setChangingPassword(true);
     try {
-      const storedPassword = readStoredPassword();
+      const storedPassword = getStoredAdminPassword();
       if (storedPassword !== currentPassword) {
         showSimpleToast('Senha atual inválida.', 'error');
         return;
       }
 
-      savePassword(newPassword);
+      setStoredAdminPassword(newPassword);
       showSimpleToast('Senha atualizada com sucesso!');
       setCurrentPassword('');
       setNewPassword('');
@@ -198,7 +178,7 @@ export default function Config() {
                 </Button>
               </div>
               <p className="md:col-span-2 text-xs text-muted-foreground">
-                Senha padrão inicial: <strong>{DEFAULT_PASSWORD}</strong>.
+                Senha padrão inicial: <strong>{DEFAULT_ADMIN_PASSWORD}</strong>.
               </p>
             </form>
           </CardContent>
