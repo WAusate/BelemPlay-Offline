@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import SplashScreen from "@/components/SplashScreen";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 // flag em memória (só vive enquanto a ABA estiver aberta)
 declare global {
@@ -30,8 +29,6 @@ export default function Layout({
   showSettingsButton = false,
 }: LayoutProps) {
   const [location, navigate] = useLocation();
-  const { user, loading } = useAuth();
-
   // 1) Marca quando a página vai recarregar/fechar
   useEffect(() => {
     const markReload = () => {
@@ -62,17 +59,8 @@ export default function Layout({
     else navigate("/");
   };
 
-  // Engrenagem: se usuário logado vai para /config, senão vai para /login
   const handleSettingsClick = () => {
-    if (loading) return; // Evita navegação durante carregamento
-    
-    if (user) {
-      // Usuário autenticado - vai direto para configurações
-      navigate("/config");
-    } else {
-      // Usuário não autenticado - vai para login
-      navigate("/login");
-    }
+    navigate("/config");
   };
 
   return (

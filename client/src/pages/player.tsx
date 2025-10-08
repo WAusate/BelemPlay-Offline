@@ -28,15 +28,7 @@
     const handleAudioError = (errorMessage: string) => {
       console.error("Audio player error:", errorMessage);
       setAudioError(errorMessage);
-
-      if (
-        errorMessage.includes("CORS") || 
-        errorMessage.includes("Media Element") || 
-        errorMessage.includes("deploy") ||
-        errorMessage.includes("formato")
-      ) {
-        setShowCorsError(true);
-      }
+      setShowCorsError(false);
     };
 
     const handleRetryAudio = () => {
@@ -76,7 +68,7 @@
 
     if (error) {
       return (
-        <Layout 
+        <Layout
           title="Erro"
           breadcrumbs={[organ.name, "Erro"]}
           showBackButton={true}
@@ -84,7 +76,7 @@
         >
           <div className="max-w-2xl mx-auto text-center py-8">
             <p className="text-church-text text-red-600">
-              Erro ao carregar hino. Verifique sua conexão.
+              Erro ao carregar hino local. Verifique se o arquivo está disponível no dispositivo.
             </p>
           </div>
         </Layout>

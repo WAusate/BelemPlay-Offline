@@ -2,10 +2,10 @@
               import { Button } from "@/components/ui/button";
               import { Slider } from "@/components/ui/slider";
               import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
-              import { HymnData } from "@shared/schema";
+              import type { OfflineHymn } from "@/lib/offline-db";
 
               interface AudioPlayerProps {
-                hymn: HymnData;
+                hymn: OfflineHymn;
                 onError?: (error: string) => void;
                 onPlay?: () => void; // mantido do HEAD
               }
@@ -18,19 +18,42 @@
                 const [volume, setVolume] = useState(50);
                 const [isMuted, setIsMuted] = useState(false);
                 const [isLoading, setIsLoading] = useState(true);
+                const [resolvedUrl, setResolvedUrl] = useState<string>("");
+
+                useEffect(() => {
+                  let objectUrl: string | null = null;
+
+                  if (hymn.source === 'local') {
+                    if (hymn.audioBlob) {
+                      objectUrl = URL.createObjectURL(hymn.audioBlob);
+                      setResolvedUrl(objectUrl);
+                    } else {
+                      setResolvedUrl("");
+                      onError?.("Arquivo de áudio local não encontrado.");
+                    }
+                  } else {
+                    setResolvedUrl(hymn.url || hymn.audioPath || "");
+                  }
+
+                  return () => {
+                    if (objectUrl) {
+                      URL.revokeObjectURL(objectUrl);
+                    }
+                  };
+                }, [hymn, onError]);
 
                 useEffect(() => {
                   const audio = audioRef.current;
                   if (!audio) return;
 
-                  if (!hymn.url || hymn.url.trim() === '') {
+                  if (!resolvedUrl || resolvedUrl.trim() === '') {
                     setIsLoading(false);
                     onError?.("URL do áudio não disponível. Tente sincronizar novamente.");
                     return;
                   }
 
                   const currentSrc = audio.src;
-                  const newSrc = hymn.url;
+                  const newSrc = resolvedUrl;
 
                   if (currentSrc !== newSrc) {
                     setIsLoading(true);
@@ -43,11 +66,7 @@
 
                     const cleanUrl = newSrc.trim().replace(/\n/g, '').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
                     try {
-                      if (cleanUrl.includes('firebasestorage.googleapis.com')) {
-                        audio.removeAttribute('crossOrigin');
-                      } else {
-                        audio.removeAttribute('crossOrigin');
-                      }
+                      audio.removeAttribute('crossOrigin');
                       audio.src = cleanUrl;
                       audio.load();
                     } catch (error) {
@@ -99,7 +118,7 @@
                       audio.removeEventListener("pause", handlePauseEvent);
                     } catch {}
                   };
-                }, [hymn.url, onError]);
+                }, [resolvedUrl, onError]);
 
                 useEffect(() => {
                   const audio = audioRef.current;
@@ -164,7 +183,7 @@
 
                 const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-                if (!hymn.url || hymn.url.trim() === '') {
+                if (!resolvedUrl || resolvedUrl.trim() === '') {
                   return (
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                       <div className="bg-gradient-to-r from-church-primary to-church-secondary p-8 text-center">

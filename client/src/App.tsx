@@ -4,13 +4,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { SimpleToastContainer } from "@/components/simple-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/error-boundary";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { ProgramacaoProvider } from "@/contexts/ProgramacaoContext";
 import Home from "@/pages/home";
 import HymnList from "@/pages/hymn-list";
 import Player from "@/pages/player";
 import Admin from "@/pages/admin";
-import Login from "@/pages/login";
 import Config from "@/pages/config";
 import NotFound from "@/pages/not-found";
 import Programacao from "@/pages/programacao";
@@ -27,7 +25,6 @@ function Router() {
       </Route>
       <Route path="/programacao" component={Programacao} />
       <Route path="/admin" component={Admin} />
-      <Route path="/login" component={Login} />
       <Route path="/config" component={Config} />
       <Route component={NotFound} />
     </Switch>
@@ -38,16 +35,14 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ProgramacaoProvider>
-            <TooltipProvider>
-              <div className="min-h-screen bg-gray-50">
-                <Router />
-                <SimpleToastContainer />
-              </div>
-            </TooltipProvider>
-          </ProgramacaoProvider>
-        </AuthProvider>
+        <ProgramacaoProvider>
+          <TooltipProvider>
+            <div className="min-h-screen bg-gray-50">
+              <Router />
+              <SimpleToastContainer />
+            </div>
+          </TooltipProvider>
+        </ProgramacaoProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
