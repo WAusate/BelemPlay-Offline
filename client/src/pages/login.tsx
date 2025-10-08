@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,47 +13,30 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [redirecting, setRedirecting] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirecionar automaticamente se já está autenticado
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && !redirecting) {
-        setRedirecting(true);
-        setIsLoading(false);
-        setTimeout(() => {
-          setLocation('/config');
-        }, 100); // Pequeno delay para evitar throttling
-      }
-    });
-
-    return () => unsubscribe();
-  }, [setLocation, redirecting]);
+    if (user) {
+      const timeout = setTimeout(() => setLocation('/config'), 150);
+      return () => clearTimeout(timeout);
+    }
+  }, [user, setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading || redirecting) return; // Prevenir múltiplos submits
-    
+    if (isLoading) return;
+
     setIsLoading(true);
     setError('');
 
     try {
       await login(email, password);
-      // O redirecionamento será feito pelo useEffect com onAuthStateChanged
+      setLocation('/config');
     } catch (err: any) {
       console.error('Login failed:', err);
-      setRedirecting(false); // Reset redirecting em caso de erro
-      if (err.code === 'auth/user-not-found') {
-        setError('Usuário não encontrado');
-      } else if (err.code === 'auth/wrong-password') {
+      if (err?.code === 'auth/wrong-password') {
         setError('Senha incorreta');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Email inválido');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Muitas tentativas. Tente novamente mais tarde');
       } else {
         setError('Erro ao fazer login. Tente novamente');
       }
@@ -80,7 +62,7 @@ export default function Login() {
               Entrar
             </CardTitle>
             <CardDescription>
-              Faça login para acessar a área de administração
+              Faça login para acessar a área de administração offline
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -136,14 +118,9 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || redirecting || !email || !password}
+                disabled={isLoading || !password}
               >
-                {redirecting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Redirecionando...
-                  </>
-                ) : isLoading ? (
+                {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Entrando...
@@ -155,7 +132,8 @@ export default function Login() {
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              <p>Use suas credenciais de administrador</p>
+              <p>Senha padrão: <strong>belem123</strong></p>
+              <p>Você poderá alterar essa senha no modo offline futuro.</p>
             </div>
           </CardContent>
         </Card>
