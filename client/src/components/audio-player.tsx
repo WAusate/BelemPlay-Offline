@@ -23,14 +23,12 @@
                 useEffect(() => {
                   let objectUrl: string | null = null;
 
-                  if (hymn.source === 'local') {
-                    if (hymn.audioBlob) {
-                      objectUrl = URL.createObjectURL(hymn.audioBlob);
-                      setResolvedUrl(objectUrl);
-                    } else {
-                      setResolvedUrl("");
-                      onError?.("Arquivo de áudio local não encontrado.");
-                    }
+                  if (hymn.audioBlob) {
+                    objectUrl = URL.createObjectURL(hymn.audioBlob);
+                    setResolvedUrl(objectUrl);
+                  } else if (hymn.source === 'local') {
+                    setResolvedUrl("");
+                    onError?.("Arquivo de áudio não encontrado no armazenamento local.");
                   } else {
                     setResolvedUrl(hymn.url || hymn.audioPath || "");
                   }
@@ -88,7 +86,7 @@
 
                   const handleError = () => {
                     setIsLoading(false);
-                    onError?.("Erro ao reproduzir o áudio. Faça deploy da aplicação.");
+                    onError?.("Erro ao reproduzir o áudio salvo no dispositivo.");
                   };
 
                   const handleLoadStart = () => setIsLoading(true);
