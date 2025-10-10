@@ -56,10 +56,15 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // ALWAYS serve the app on a predictable port so the API and client
+  // can both be reached locally without conflicts.
+  const defaultPort = 5050;
+  const envPort = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : undefined;
+  const hasValidEnvPort = typeof envPort === "number" && Number.isFinite(envPort);
+  if (envPort !== undefined && !hasValidEnvPort) {
+    log(`invalid PORT environment variable \"${process.env.PORT}\", falling back to ${defaultPort}`);
+  }
+  const port = hasValidEnvPort ? envPort : defaultPort;
   server.listen({
     port,
     host: "0.0.0.0",
