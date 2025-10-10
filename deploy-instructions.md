@@ -112,4 +112,4 @@ Para testar localmente com Firebase Hosting:
    firebase serve
    ```
 
-Isso irá servir a aplicação localmente na porta 5000.
+Isso irá servir a aplicação localmente na porta 5050.
